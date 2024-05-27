@@ -1,0 +1,25 @@
+/* src/App.module.css */
+.appContainer {
+    display: flex;
+    flex-direction: column;
+    font-family: 'Arial', sans-serif;
+  }
+  
+  .mainContent {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .content {
+    flex: 1;
+    padding: 20px;
+  }
+  
+  .sidebar {
+    width: 250px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-left: 1px solid #e0e0e0;
+    height: 100vh;
+  }
+  

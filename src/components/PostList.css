@@ -1,0 +1,33 @@
+.post-list {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.post-item {
+  background-color: #ffffff;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  margin-bottom: 20px;
+  transition: transform 0.3s ease;
+}
+
+.post-item:hover {
+  transform: scale(1.02);
+}
+
+.post-item img {
+  max-width: 100%;
+  border-radius: 4px;
+  margin-top: 10px;
+}
+
+.post-item h3 {
+  font-size: 1.2em;
+  margin-bottom: 10px;
+}
+
+.post-item p {
+  color: #555;
+}

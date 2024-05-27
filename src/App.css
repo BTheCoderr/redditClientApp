@@ -1,3 +1,16 @@
+.app-content {
+  display: flex;
+}
+
+.main-content {
+  flex: 1;
+  padding: 20px;
+}
+
+.sidebar {
+  width: 250px;
+}
+
 .App {
   text-align: center;
 }
@@ -36,3 +49,25 @@
     transform: rotate(360deg);
   }
 }
+
+/* src/App.css */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f5f5f5;
+  margin: 0;
+  padding: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+}
+
+a {
+  text-decoration: none;
+  color: #0079d3;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
