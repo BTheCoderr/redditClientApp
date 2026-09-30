@@ -6,6 +6,7 @@ const STORAGE_KEY = 'threadline-v2';
 
 const defaultLocal = {
   saved: [],
+  savedPosts: [],
   followed: ['reactjs', 'webdev', 'programming'],
   history: [],
   recentSearches: [],
@@ -103,17 +104,14 @@ function App() {
   }, []);
 
   const displayPosts = useMemo(() => {
-    if (tab === 'saved') return posts.filter(post => local.saved.includes(post.id));
-    if (tab === 'history') {
-      const order = new Map(local.history.map((item, index) => [item.id, index]));
-      return posts.filter(post => order.has(post.id)).sort((a, b) => order.get(a.id) - order.get(b.id));
-    }
+    if (tab === 'saved') return local.savedPosts || [];
+    if (tab === 'history') return local.history.map(item => item.post).filter(Boolean);
 
     if (sourceMode === 'demo' && community !== 'popular') {
       return posts.filter(post => post.subreddit.toLowerCase() === community.toLowerCase());
     }
     return posts;
-  }, [posts, tab, local.saved, local.history, sourceMode, community]);
+  }, [posts, tab, local.savedPosts, local.history, sourceMode, community]);
 
   const communities = useMemo(() => {
     const fromPosts = posts.map(post => post.subreddit);
@@ -173,7 +171,7 @@ function App() {
     setLocal(prev => ({
       ...prev,
       history: [
-        { id: post.id, title: post.title, subreddit: post.subreddit, openedAt: Date.now() },
+        { id: post.id, post: { ...post }, openedAt: Date.now() },
         ...prev.history.filter(item => item.id !== post.id),
       ].slice(0, 30),
     }));
@@ -190,13 +188,18 @@ function App() {
     }
   };
 
-  const toggleSave = postId => {
-    setLocal(prev => ({
-      ...prev,
-      saved: prev.saved.includes(postId)
-        ? prev.saved.filter(id => id !== postId)
-        : [postId, ...prev.saved],
-    }));
+  const toggleSave = post => {
+    const postId = post.id;
+    setLocal(prev => {
+      const exists = prev.saved.includes(postId);
+      return {
+        ...prev,
+        saved: exists ? prev.saved.filter(id => id !== postId) : [postId, ...prev.saved],
+        savedPosts: exists
+          ? (prev.savedPosts || []).filter(item => item.id !== postId)
+          : [{ ...post }, ...(prev.savedPosts || []).filter(item => item.id !== postId)].slice(0, 60),
+      };
+    });
   };
 
   const toggleFollow = subreddit => {
@@ -226,7 +229,7 @@ function App() {
         <button className="mobile-menu" type="button" onClick={() => setSidebarOpen(true)} aria-label="Open navigation">☰</button>
         <button className="brand" type="button" onClick={() => setCommunityAndLoad('popular')}>
           <span className="brand-mark">t/</span>
-          <span><strong>Threadline</strong><small>community reader</small></span>
+          <span><strong>Threadline</strong><small>for Reddit</small></span>
         </button>
 
         <form className="search" onSubmit={runSearch}>
@@ -356,7 +359,7 @@ function App() {
 
                   <div className="post-actions">
                     <button onClick={() => openPost(post)}><span>▢</span>{formatNumber(post.num_comments)} comments</button>
-                    <button className={local.saved.includes(post.id) ? 'saved' : ''} onClick={() => toggleSave(post.id)}>
+                    <button className={local.saved.includes(post.id) ? 'saved' : ''} onClick={() => toggleSave(post)}>
                       <span>{local.saved.includes(post.id) ? '◆' : '◇'}</span>{local.saved.includes(post.id) ? 'Saved' : 'Save'}
                     </button>
                     <button onClick={() => navigator.clipboard?.writeText(post.demo ? window.location.href : `https://www.reddit.com${post.permalink}`)}>
@@ -404,6 +407,7 @@ function App() {
             <label><span>Theme</span><select value={local.theme} onChange={event => setLocal(prev => ({ ...prev, theme: event.target.value }))}><option value="dark">Dark</option><option value="light">Light</option><option value="system">System</option></select></label>
             <label><span>Density</span><select value={local.density} onChange={event => setLocal(prev => ({ ...prev, density: event.target.value }))}><option value="comfortable">Comfortable</option><option value="compact">Compact</option></select></label>
             <p>Saved posts, follows, history, searches, and settings stay in your browser.</p>
+            <a className="privacy-link" href="/privacy.html" target="_blank" rel="noreferrer">Privacy</a>
           </section>
         </aside>
       </div>
@@ -419,7 +423,7 @@ function App() {
               <h2>{selectedPost.title}</h2>
               {selectedPost.selftext ? <p>{selectedPost.selftext}</p> : <p className="muted-copy">This post links to external content.</p>}
               <div className="reader-actions">
-                <button className={local.saved.includes(selectedPost.id) ? 'primary-action' : ''} onClick={() => toggleSave(selectedPost.id)}>
+                <button className={local.saved.includes(selectedPost.id) ? 'primary-action' : ''} onClick={() => toggleSave(selectedPost)}>
                   {local.saved.includes(selectedPost.id) ? '◆ Saved' : '◇ Save'}
                 </button>
                 <a href={selectedPost.demo ? `https://www.reddit.com/r/${selectedPost.subreddit}/` : `https://www.reddit.com${selectedPost.permalink}`} target="_blank" rel="noreferrer">
