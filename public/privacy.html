@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0f1115">
+  <title>Threadline Privacy</title>
+  <style>
+    :root{color-scheme:dark;font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0c0e12;color:#f5f7fa}
+    body{margin:0}.wrap{width:min(760px,calc(100% - 32px));margin:0 auto;padding:48px 0 80px}
+    a{color:#ff7b49}h1{font-size:42px;letter-spacing:-.045em;margin:8px 0 12px}h2{margin-top:32px;font-size:20px}
+    p,li{color:#9ba5b4;line-height:1.7}.eyebrow{font-size:11px;color:#ff6b35;font-weight:900;letter-spacing:.12em}
+    .card{margin-top:24px;padding:18px 20px;border:1px solid #262c36;border-radius:16px;background:#12151b}
+    code{color:#f5f7fa;background:#1d222b;padding:2px 5px;border-radius:5px}.back{display:inline-block;margin-top:32px;text-decoration:none;font-weight:800}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <span class="eyebrow">THREADLINE FOR REDDIT</span>
+    <h1>Privacy</h1>
+    <p>Last updated: September 30, 2026.</p>
+
+    <div class="card">
+      <strong>Short version</strong>
+      <p>Threadline does not require an account or database. Reader preferences are stored locally in your browser. When Live Reddit mode is configured, feed/search/comment requests are sent through a Netlify server function to Reddit using the app's server-side OAuth credentials.</p>
+    </div>
+
+    <h2>Information stored on your device</h2>
+    <p>Threadline uses browser localStorage to remember saved post snapshots, followed communities, reading history, recent searches, theme, and display density. This information remains on the device/browser profile unless you clear site data.</p>
+
+    <h2>Live Reddit requests</h2>
+    <p>When Live mode is enabled, the subreddit, sort choice, search query, post ID, and pagination token needed for your requested view may be sent to the Threadline Netlify Function. The function forwards the necessary request to Reddit using server-side OAuth credentials. Threadline does not ask for or store your Reddit username, password, or personal Reddit OAuth token.</p>
+
+    <h2>Server storage</h2>
+    <p>The application does not intentionally write reader activity to an application database. Hosting infrastructure may retain ordinary request/build/security logs according to the hosting provider's own policies.</p>
+
+    <h2>Reddit content</h2>
+    <p>Live content is provided by Reddit and is subject to Reddit's own terms and privacy practices. Opening a link on Reddit takes you to Reddit directly.</p>
+
+    <h2>Demo mode</h2>
+    <p>When Reddit OAuth is not configured or temporarily unavailable, Threadline uses original sample content bundled with the app. Demo posts are clearly marked and are not copied from Reddit.</p>
+
+    <h2>Analytics and advertising</h2>
+    <p>Threadline does not include application analytics or advertising code by default.</p>
+
+    <a class="back" href="/">← Back to Threadline</a>
+  </main>
+</body>
+</html>
