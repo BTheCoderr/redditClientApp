@@ -14,11 +14,30 @@ const defaultLocal = {
   density: 'comfortable',
 };
 
+const normalizeLocal = value => {
+  const raw = value && typeof value === 'object' ? value : {};
+  return {
+    ...defaultLocal,
+    ...raw,
+    saved: Array.isArray(raw.saved) ? raw.saved.filter(item => typeof item === 'string').slice(0, 100) : [],
+    savedPosts: Array.isArray(raw.savedPosts) ? raw.savedPosts.filter(Boolean).slice(0, 60) : [],
+    followed: Array.isArray(raw.followed)
+      ? raw.followed.filter(item => typeof item === 'string' && item.trim()).slice(0, 30)
+      : defaultLocal.followed,
+    history: Array.isArray(raw.history) ? raw.history.filter(Boolean).slice(0, 30) : [],
+    recentSearches: Array.isArray(raw.recentSearches)
+      ? raw.recentSearches.filter(item => typeof item === 'string' && item.trim()).slice(0, 6)
+      : [],
+    theme: ['dark', 'light', 'system'].includes(raw.theme) ? raw.theme : defaultLocal.theme,
+    density: ['comfortable', 'compact'].includes(raw.density) ? raw.density : defaultLocal.density,
+  };
+};
+
 const loadLocal = () => {
   try {
-    return { ...defaultLocal, ...JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') };
+    return normalizeLocal(JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'));
   } catch {
-    return defaultLocal;
+    return { ...defaultLocal };
   }
 };
 
@@ -46,6 +65,8 @@ function App() {
   const [query, setQuery] = useState('');
   const [searchLabel, setSearchLabel] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [after, setAfter] = useState(null);
   const [selectedPost, setSelectedPost] = useState(null);
   const [comments, setComments] = useState([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
@@ -57,11 +78,16 @@ function App() {
   }, [local]);
 
   useEffect(() => {
-    const actualTheme = local.theme === 'system'
-      ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
-      : local.theme;
-    document.documentElement.dataset.theme = actualTheme;
-    document.documentElement.dataset.density = local.density;
+    const media = window.matchMedia('(prefers-color-scheme: light)');
+    const applyAppearance = () => {
+      const actualTheme = local.theme === 'system' ? (media.matches ? 'light' : 'dark') : local.theme;
+      document.documentElement.dataset.theme = actualTheme;
+      document.documentElement.dataset.density = local.density;
+    };
+
+    applyAppearance();
+    if (local.theme === 'system') media.addEventListener?.('change', applyAppearance);
+    return () => media.removeEventListener?.('change', applyAppearance);
   }, [local.theme, local.density]);
 
   useEffect(() => {
@@ -76,6 +102,7 @@ function App() {
   const fallbackToDemo = (message = 'Demo mode · Reddit OAuth is not configured yet.') => {
     setSourceMode('demo');
     setSourceMessage(message);
+    setAfter(null);
     setPosts(demoPosts);
   };
 
@@ -85,6 +112,7 @@ function App() {
     try {
       const result = await fetchFeed({ subreddit: targetCommunity, sort: targetSort });
       setPosts(result.posts.filter(post => !post.over_18));
+      setAfter(result.after || null);
       setSourceMode('live');
       setSourceMessage('Live Reddit data · authenticated server connection');
     } catch (error) {
@@ -102,6 +130,20 @@ function App() {
     load({ targetCommunity: 'popular', targetSort: 'hot' });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!selectedPost) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKeyDown = event => {
+      if (event.key === 'Escape') setSelectedPost(null);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [selectedPost]);
 
   const displayPosts = useMemo(() => {
     if (tab === 'saved') return local.savedPosts || [];
@@ -128,6 +170,7 @@ function App() {
       load({ targetCommunity: clean || 'popular', targetSort: sort });
     } else {
       setSearchLabel('');
+      setAfter(null);
       setPosts(demoPosts);
     }
   };
@@ -139,6 +182,7 @@ function App() {
 
     setLoading(true);
     setTab('feed');
+    setAfter(null);
     setSearchLabel(clean);
     setLocal(prev => ({
       ...prev,
@@ -214,6 +258,24 @@ function App() {
   const changeSort = next => {
     setSort(next);
     if (sourceMode === 'live' && !searchLabel) load({ targetCommunity: community, targetSort: next });
+  };
+
+  const loadMore = async () => {
+    if (sourceMode !== 'live' || searchLabel || !after || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const result = await fetchFeed({ subreddit: community, sort, after });
+      const nextPosts = result.posts.filter(post => !post.over_18);
+      setPosts(prev => {
+        const seen = new Set(prev.map(post => post.id));
+        return [...prev, ...nextPosts.filter(post => !seen.has(post.id))];
+      });
+      setAfter(result.after || null);
+    } catch {
+      setSourceMessage('Live Reddit is connected, but loading more posts failed. You can retry.');
+    } finally {
+      setLoadingMore(false);
+    }
   };
 
   const installApp = async () => {
@@ -309,7 +371,7 @@ function App() {
               </h1>
               <p>{sourceMessage}</p>
             </div>
-            {tab === 'feed' && (
+            {tab === 'feed' && !searchLabel && (
               <div className="sort-tabs">
                 {['hot', 'new', 'top', 'rising'].map(item => (
                   <button key={item} className={sort === item ? 'active' : ''} onClick={() => changeSort(item)}>{item}</button>
@@ -370,6 +432,14 @@ function App() {
               </article>
             ))}
           </div>
+
+          {tab === 'feed' && sourceMode === 'live' && !searchLabel && after && (
+            <div className="load-more-row">
+              <button type="button" onClick={loadMore} disabled={loadingMore}>
+                {loadingMore ? 'Loading more…' : 'Load more posts'}
+              </button>
+            </div>
+          )}
         </main>
 
         <aside className="right-rail">
