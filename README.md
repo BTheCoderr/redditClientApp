@@ -1,5 +1,11 @@
 # Threadline for Reddit
 
+<!-- repo-intro:start -->
+**Project snapshot:** Threadline for Reddit is a modern React reader that revives an older Reddit client with a current Vite stack, local-first reading features, and a server-side OAuth boundary for live Reddit data.
+
+**What it demonstrates:** React · Vite · Netlify Functions · OAuth-aware API design · PWA.
+<!-- repo-intro:end -->
+
 A modern revival of the original `redditClientApp`.
 
 The original project was a Create React App prototype that fetched Reddit's public `.json` endpoints directly from the browser, hard-coded `r/reactjs`, and had incomplete search/comments/navigation. Threadline keeps the community-reader idea but rebuilds the product and data boundary for current Reddit access rules.
