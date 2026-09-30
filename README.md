@@ -1,70 +1,89 @@
-# Getting Started with Create React App
+# Threadline for Reddit
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A modern revival of the original `redditClientApp`.
 
-## Available Scripts
+The original project was a Create React App prototype that fetched Reddit's public `.json` endpoints directly from the browser, hard-coded `r/reactjs`, and had incomplete search/comments/navigation. Threadline keeps the community-reader idea but rebuilds the product and data boundary for current Reddit access rules.
 
-In the project directory, you can run:
+## What changed
 
-### `npm start`
+### Modern frontend
+- React 19.3
+- Vite 8.3
+- Responsive desktop/mobile layout
+- Dark/light/system appearance
+- Comfortable/compact density
+- Installable PWA + offline app shell
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### Reader features
+- Home feed
+- Community browsing
+- Search
+- Hot / New / Top / Rising sorting
+- Saved posts with local snapshots
+- Reading history with local snapshots
+- Followed communities
+- Recent searches
+- Post reader drawer
+- Live comments when Reddit is connected
+- External "Open on Reddit" links
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### Local-first behavior
 
-### `npm test`
+These preferences live in browser `localStorage` under `threadline-v2`:
+- saved posts
+- followed communities
+- reading history
+- recent searches
+- theme
+- density
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+No account or database is required.
 
-### `npm run build`
+## Demo mode
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+The app is intentionally usable without Reddit credentials. In Demo Mode it displays clearly labeled sample posts from `src/data/demoPosts.js`.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+The sample posts are original placeholder content. They are **not scraped or copied Reddit posts**.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Live Reddit mode
 
-### `npm run eject`
+Reddit's current Data API rules require registered OAuth access. Threadline therefore does **not** call Reddit's legacy public JSON endpoints directly from the browser.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Live data flows through `netlify/functions/reddit.mts`:
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+1. The server function reads Reddit credentials from Netlify environment variables.
+2. It requests an application-only OAuth token.
+3. It calls `https://oauth.reddit.com`.
+4. It returns only the feed/search/comment data needed by the UI.
+5. Client secrets never ship to the browser.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Required environment variables:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```
+REDDIT_CLIENT_ID=
+REDDIT_CLIENT_SECRET=
+REDDIT_USER_AGENT=web:threadline-reader:v2.0 (by /u/YOUR_REDDIT_USERNAME)
+```
 
-## Learn More
+Use credentials from a Reddit Data API app that has been registered/approved for your use case and follow Reddit's Developer Terms, Data API Terms, and rate limits.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+If these variables are missing, the function returns a controlled `503` and the UI automatically falls back to Demo Mode.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Development
 
-### Code Splitting
+```bash
+npm install
+npm run dev
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+For full local Netlify Function behavior, use Netlify's local development tooling with the environment variables above.
 
-### Analyzing the Bundle Size
+## Production
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+`netlify.toml` builds the Vite app into `dist/` and deploys the Reddit proxy from `netlify/functions/`.
 
-### Making a Progressive Web App
+No database is required.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## Privacy
 
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+A basic app-specific privacy disclosure is available at `/privacy.html`. It documents local browser storage and the on-demand Reddit proxy behavior.
