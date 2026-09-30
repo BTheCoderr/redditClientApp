@@ -39,3 +39,6 @@ html[data-density="compact"] .post-body{padding:11px 14px}html[data-density="com
   .post-card{grid-template-columns:1fr}.vote-column{display:none}.post-body{padding:14px}.post-title{font-size:16px}.post-actions{overflow-x:auto}.post-actions button{white-space:nowrap}.demo-banner{align-items:flex-start}.reader-content{padding:21px}.reader-content>h2{font-size:25px}
 }
 @media(max-width:430px){.search input::placeholder{color:transparent}.search{padding:0 9px}.feed-header p{line-height:1.45}.demo-banner{display:grid}.post-meta span:nth-of-type(2),.post-meta span:nth-of-type(3){display:none}}
+
+.privacy-link{display:inline-block;margin-top:2px;color:var(--muted);font-size:9px;font-weight:800;text-decoration:none}
+.privacy-link:hover{color:var(--accent)}
